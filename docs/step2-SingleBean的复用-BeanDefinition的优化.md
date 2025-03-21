@@ -199,6 +199,22 @@ public void test_BeanFactory(){
 }
 ```
 
+#### 从 Spring 看设计模式
+
+从流程来看，复用 Bean 和修改 BeanDefinition 只需要把 BeanFactory 修改掉，里面存两个 Map 就好。但是这搞了一堆的接口、实现、继承……
+
+上一个 step 还只有两个类，现在一下就暴增起来。
+
+我们来看一看其中都用了哪些模式，有什么道理。
+
+##### 工厂方法
+
+开闭原则便于后续拓展新的不同的 Bean 实例
+
+##### 策略模式
+
+
+
 #### 疑问与思考
 
 ##### 为什么 getSingleton() 方法不抛出异常？
@@ -223,12 +239,6 @@ public Object getBean(String name) throws BeansException {
     return createBean(name, beanDefinition);
 }
 ```
-
-##### 为啥要设计得这么复杂……
-
-从流程来看，复用 Bean 和修改 BeanDefinition 只需要把 BeanFactory 修改掉，里面存两个 Map 就好。但是这搞了一堆的接口、实现、继承……
-
-不知道，我估计原因是大家都照着 Spring 源码去写的，所以后序的拓展（譬如非单例的 Bean）就比较明确，于是提前设计了这么一大坨。
 
 ##### 为啥这里又可以用 HashMap，而不是 ConcurrentHashMap 了？
 

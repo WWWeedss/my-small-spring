@@ -21,6 +21,11 @@
             <version>4.7</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>3.3.0</version>  <!-- 你可以根据需要使用最新版本 -->
+        </dependency>
     </dependencies>
 
 </project>
