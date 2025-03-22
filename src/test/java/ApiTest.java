@@ -29,9 +29,8 @@ public class ApiTest {
         beanFactory.registerBeanDefinition("userService", beanDefinition);
 
         // 5. UserService 获取bean
-        UserService userService = (UserService) beanFactory.getBean("userService");
+        UserService userService = (UserService) beanFactory.getBean("userService", "10002");
         userService.queryUserInfo();
-
     }
 }
 

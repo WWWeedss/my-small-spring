@@ -6,6 +6,10 @@ public class UserService {
     private UserDao userDao;
     public UserService() {
     }
+
+    public UserService(String uId) {
+        this.uId = uId;
+    }
     public void queryUserInfo() {
         System.out.println("查询用户信息：" + userDao.queryUserName(uId));
     }
