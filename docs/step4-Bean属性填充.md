@@ -45,7 +45,37 @@
 
 本阶段完成后项目目录如下：
 
-![image-20250322102352337](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250322102352337.png)
+```bash
+└── src
+    ├── main
+    │   └── java
+    │       └── springframework.beans
+    │           ├── factory
+    │           │   ├── config
+    │           │   │   ├── BeanDefinition.java --change
+    │           │   │   ├── BeanReference.java --new
+    │           │   │   └── SingletonBeanRegistry.java
+    │           │   ├── support
+    │           │   │   ├── AbstractAutowireCapableBeanFactory.java --change
+    │           │   │   ├── AbstractBeanFactory.java
+    │           │   │   ├── BeanDefinitionRegistry.java 
+    │           │   │   ├── CglibSubclassingInstantiationStrategy.java
+    │           │   │   ├── DefaultListableBeanFactory.java
+    │           │   │   ├── DefaultSingletonBeanRegistry.java
+    │           │   │   ├── InstantiationStrategy.java
+    │           │   │   └── SimpleInstantiationStrategy.java
+    │           │   └── BeanFactory.java
+    │           ├── BeansException.java
+    │           ├── PropertyValue.java --new
+    │           └── PropertyValues.java --new
+    └── test
+        └── java
+            └── test
+                ├── bean
+                │   ├── UserDao.java
+                │   └── UserService.java
+                └── ApiTest.java
+```
 
 ---
 

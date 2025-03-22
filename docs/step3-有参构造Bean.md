@@ -12,7 +12,35 @@ Bean 的构造函数需要参数怎么办？
 
 本步骤完成后的项目目录：
 
-![image-20250321231150530](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250321231150530.png)
+```bash
+└── src
+    ├── main
+    │   └── java
+    │       └── springframework.beans
+    │           ├── factory
+    │           │   ├── config
+    │           │   │   ├── BeanDefinition.java
+    │           │   │   └── SingletonBeanRegistry.java
+    │           │   ├── support
+    │           │   │   ├── AbstractAutowireCapableBeanFactory.java --change
+    │           │   │   ├── AbstractBeanFactory.java --change
+    │           │   │   ├── BeanDefinitionRegistry.java
+    │           │   │   ├── CglibSubclassingInstantiationStrategy.java --new
+    │           │   │   ├── DefaultListableBeanFactory.java
+    │           │   │   ├── DefaultSingletonBeanRegistry.java
+    │           │   │   ├── InstantiationStrategy.java --new
+    │           │   │   └── SimpleInstantiationStrategy.java --new
+    │           │   └── BeanFactory.java --change
+    │           └── BeansException.java
+    └── test
+        └── java
+            └── test
+                ├── bean
+                │   └── UserService.java
+                └── ApiTest.java
+```
+
+
 
 要实例化 Bean 有多种方法，一种是之前我们用的，用反射去实例化，我们还可以通过 Cglib 或者 bytebuddy 之类的库去实例化。为啥要用它们呢？我们后面可以看到作用。
 
@@ -110,6 +138,18 @@ public class CglibSubclassingInstantiationStrategy implements InstantiationStrat
 好吧，从这里我们就可以看出来了，Cglib 除了把类的实例给我们之外，还支持我们做别的操作，譬如设置回调函数，这个函数将在该实例的每个方法调用之后都被调用，嗯，我们简直可以从中看到 AOP 的影子了。
 
 看来光写 Spring 框架还不行，还得去读一读 Cglib 这个回调函数是咋实现的，才能从最底层去理解 AOP 之类的……再说吧就。
+
+---
+
+在 BeanFactory 增加有参 getBean() 接口
+
+```java
+public interface BeanFactory {
+    Object getBean(String name) throws BeansException;
+
+    Object getBean(String name, Object... args) throws BeansException;
+}
+```
 
 ---
 

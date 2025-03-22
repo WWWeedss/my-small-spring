@@ -17,13 +17,18 @@ Spring 框架的一大功能就在于用 Bean 去管理类实例的生命周期�
 本步骤完成后的项目结构：
 
 ```bash
-small-spring-step-01
 └── src
     ├── main
-       └── java
-           └── springframework.beans
-               ├── BeanDefinition.java
-               └── BeanFactory.java
+    │   └── java
+    │       └── springframework.beans
+    │           ├── BeanDefinition.java -- new
+    │           └── BeanFactory.java -- new
+    └── test
+        └── java
+            └── test  
+                ├── bean
+                │   └── UserService.java                 
+                └── ApiTest.java
 ```
 
 首先我们想办法把类实例包装成 Bean 对象：

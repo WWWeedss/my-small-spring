@@ -13,7 +13,32 @@
 
 本步骤完成后的项目结构：
 
-![](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250321102001527.png)
+```bash
+└── src
+    ├── main
+    │   └── java
+    │       └── springframework.beans
+    │           ├── factory
+    │           │   ├── config
+    │           │   │   ├── BeanDefinition.java --change
+    │           │   │   └── SingletonBeanRegistry.java --new
+    │           │   ├── support
+    │           │   │   ├── AbstractAutowireCapableBeanFactory.java --new
+    │           │   │   ├── AbstractBeanFactory.java --new
+    │           │   │   ├── BeanDefinitionRegistry.java --new
+    │           │   │   ├── DefaultListableBeanFactory.java --new
+    │           │   │   └── DefaultSingletonBeanRegistry.java --new
+    │           │   └── BeanFactory.java --change
+    │           └── BeansException.java --ne
+    └── test
+        └── java
+            └── test
+                ├── bean
+                │   └── UserService.java
+                └── ApiTest.java
+```
+
+
 
 既然把类实例化的逻辑交给框架做，那么就可能抛出实例化异常。此外，还有找不到对应 name 的 bean 的异常等，我们创建一个 Exception 类统一处理。
 
