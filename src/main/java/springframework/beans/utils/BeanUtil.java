@@ -1,4 +1,4 @@
-package springframework.beans.factory.utils;
+package springframework.beans.utils;
 
 import java.lang.reflect.Field;
 

@@ -5,7 +5,7 @@ import springframework.beans.PropertyValue;
 import springframework.beans.PropertyValues;
 import springframework.beans.factory.config.BeanDefinition;
 import springframework.beans.factory.config.BeanReference;
-import springframework.beans.factory.utils.BeanUtil;
+import springframework.beans.utils.BeanUtil;
 
 import java.lang.reflect.Constructor;
 
