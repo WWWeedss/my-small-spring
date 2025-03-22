@@ -7,16 +7,9 @@ public class ClassPathResource implements Resource{
 
     private final String path;
 
-    private ClassLoader classLoader;
-
     public ClassPathResource(String path) {
         // 委托给另一个构造器
-        this(path, (ClassLoader) null);
-    }
-
-    public ClassPathResource(String path, ClassLoader classLoader) {
         this.path = path;
-        this.classLoader = classLoader;
     }
 
     @Override
