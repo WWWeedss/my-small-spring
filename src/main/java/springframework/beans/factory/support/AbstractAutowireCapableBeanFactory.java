@@ -1,7 +1,11 @@
 package springframework.beans.factory.support;
 
 import springframework.beans.BeansException;
+import springframework.beans.PropertyValue;
+import springframework.beans.PropertyValues;
 import springframework.beans.factory.config.BeanDefinition;
+import springframework.beans.factory.config.BeanReference;
+import springframework.beans.factory.utils.BeanUtil;
 
 import java.lang.reflect.Constructor;
 
@@ -12,6 +16,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         Object bean;
         try {
             bean = createBeanInstance(beanDefinition, beanName, args);
+            applyPropertyValues(beanName, bean, beanDefinition);
         } catch (Exception e) {
             throw new BeansException("Instantiation of bean failed", e);
         }
@@ -50,6 +55,28 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             }
         }
         return true;
+    }
+
+    protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
+        try {
+            PropertyValues propertyValues = beanDefinition.getPropertyValues();
+            for (PropertyValue propertyValue : propertyValues.getPropertyValues()){
+
+                String name = propertyValue.getName();
+                Object value = propertyValue.getValue();
+
+                if (value instanceof BeanReference){
+                    BeanReference beanReference = (BeanReference) value;
+                    // 记得吗，getBean 在 Bean 不存在的时候会先实例化对应的 Bean
+                    // 现在的处理方法如果有环形依赖会有问题，后面我们再解决
+                    value = getBean(beanReference.getBeanName());
+                }
+
+                BeanUtil.setFieldValue(bean, name, value);
+            }
+        } catch (Exception e) {
+            throw new BeansException("Error setting property values for bean: " + beanName);
+        }
     }
 
     public void setInstantiationStrategy(InstantiationStrategy instantiationStrategy) {
