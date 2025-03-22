@@ -64,6 +64,8 @@
     │           │   │   ├── DefaultSingletonBeanRegistry.java
     │           │   │   ├── InstantiationStrategy.java
     │           │   │   └── SimpleInstantiationStrategy.java
+    |           |   ├── utils
+    │           │   │   └── BeanUtil.java --new
     │           │   └── BeanFactory.java
     │           ├── BeansException.java
     │           ├── PropertyValue.java --new
