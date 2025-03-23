@@ -3,11 +3,16 @@ package springframework.beans.factory.support;
 import springframework.beans.BeansException;
 import springframework.beans.factory.BeanFactory;
 import springframework.beans.factory.config.BeanDefinition;
+import springframework.beans.factory.config.BeanPostProcessor;
+import springframework.beans.factory.config.ConfigurableBeanFactory;
 
 import java.beans.Beans;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements BeanFactory {
+public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements ConfigurableBeanFactory {
 
+    private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<BeanPostProcessor>();
     @Override
     public Object getBean(String name) throws BeansException {
         return doGetBean(name, null);
@@ -37,4 +42,14 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 
     protected abstract Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException;
 
+    @Override
+    public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+        // 因为BeanPostProcessor是有顺序的，所以需要先移除，再添加，保证顺序
+        this.beanPostProcessors.remove(beanPostProcessor);
+        this.beanPostProcessors.add(beanPostProcessor);
+    }
+
+    public List<BeanPostProcessor> getBeanPostProcessors() {
+        return this.beanPostProcessors;
+    }
 }

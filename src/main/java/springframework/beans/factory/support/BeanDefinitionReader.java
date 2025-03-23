@@ -1,8 +1,8 @@
 package springframework.beans.factory.support;
 
+import springframework.beans.BeansException;
 import springframework.beans.core.io.Resource;
 import springframework.beans.core.io.ResourceLoader;
-import springframework.beans.factory.config.BeanDefinition;
 
 public interface BeanDefinitionReader {
 
@@ -10,9 +10,11 @@ public interface BeanDefinitionReader {
 
     ResourceLoader getResourceLoader();
 
-    void loadBeanDefinitions(Resource resource) throws Exception;
+    void loadBeanDefinitions(Resource resource) throws BeansException;
 
-    void loadBeanDefinitions(Resource... resources) throws Exception;
+    void loadBeanDefinitions(Resource... resources) throws BeansException;
 
-    void loadBeanDefinitions(String location) throws Exception;
+    void loadBeanDefinitions(String location) throws BeansException;
+
+    void loadBeanDefinitions(String... locations) throws BeansException;
 }
