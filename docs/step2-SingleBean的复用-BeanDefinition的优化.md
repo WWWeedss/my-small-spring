@@ -201,6 +201,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 测试文件：
 
 ```java
+public class UserService {
+    public void queryUserInfo(){
+        System.out.println("查询用户信息");
+    }
+}
+```
+
+```java
 @Test
 public void test_BeanFactory(){
     // 1.初始化 BeanFactory
