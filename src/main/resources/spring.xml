@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
 
-    <bean id="userDao" class="bean.UserDao"/>
+    <bean id="userDao" class="bean.UserDao" init-method="initDataMethod" destroy-method="destroyDataMethod"/>
 
     <bean id="userService" class="bean.UserService">
         <property name="uId" value="10001"/>
+        <property name="userDao" ref="userDao"/>
+        <property name="location" value="深圳"/>
         <property name="userDao" ref="userDao"/>
     </bean>
 

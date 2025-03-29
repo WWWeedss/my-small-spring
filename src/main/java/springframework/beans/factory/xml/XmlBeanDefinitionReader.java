@@ -79,6 +79,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
         String name = bean.getAttribute("name");
         String className = bean.getAttribute("class");
 
+        //换汤不换药啊，还是用反射
         Class<?> clazz = Class.forName(className);
         // isEmpty() : length == 0 || str == null
         // 反正我们只要唯一标识，所以优先用 id
@@ -89,6 +90,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
         // 创建 BeanDefinition
         BeanDefinition beanDefinition = new BeanDefinition(clazz);
+        beanDefinition.setInitMethodName(bean.getAttribute("init-method"));
+        beanDefinition.setDestroyMethodName(bean.getAttribute("destroy-method"));
 
         // 解析 Bean 属性并填充
         for(int j = 0; j < bean.getChildNodes().getLength(); j++){

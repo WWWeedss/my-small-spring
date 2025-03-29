@@ -36,7 +36,7 @@
 任务清单：
 
 - [x] Bean 的创建与管理
-- [ ] 在 xml 文件里配置 Bean
-- [ ] Bean 自定义上下文
+- [x] 在 xml 文件里配置 Bean
+- [x] Bean 自定义上下文
 - [ ] Spring Event 实现
 - [ ] Spring 对 Restful Api 的支持与封装
