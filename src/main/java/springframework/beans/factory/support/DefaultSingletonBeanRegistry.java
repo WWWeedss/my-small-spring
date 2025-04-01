@@ -33,7 +33,6 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
                 Object beanName = disposableBeanNames[i];
                 DisposableBean disposableBean = disposableBeans.remove(beanName);
                 try {
-                    // 额，直接调用 DisposableBean 接口的 destroy 方法，那 Adapter 有什么用？
                     disposableBean.destroy();
                 } catch (Exception e) {
                     throw new RuntimeException("Destroy method on bean with name '" + beanName + "' threw an exception", e);
