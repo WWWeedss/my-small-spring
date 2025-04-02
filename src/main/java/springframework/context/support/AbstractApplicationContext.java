@@ -1,8 +1,8 @@
-package springframework.beans.context.support;
+package springframework.context.support;
 
 import springframework.beans.BeansException;
-import springframework.beans.context.ConfigurableApplicationContext;
-import springframework.beans.core.io.DefaultResourceLoader;
+import springframework.context.ConfigurableApplicationContext;
+import springframework.core.io.DefaultResourceLoader;
 import springframework.beans.factory.ConfigurableListableBeanFactory;
 import springframework.beans.factory.config.BeanFactoryPostProcessor;
 import springframework.beans.factory.config.BeanPostProcessor;

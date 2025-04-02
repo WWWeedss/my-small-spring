@@ -1,4 +1,4 @@
-package springframework.beans.core.io;
+package springframework.core.io;
 
 import java.net.MalformedURLException;
 import java.net.URL;

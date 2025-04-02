@@ -1,7 +1,7 @@
 package springframework.beans.factory.support;
 
-import springframework.beans.core.io.DefaultResourceLoader;
-import springframework.beans.core.io.ResourceLoader;
+import springframework.core.io.DefaultResourceLoader;
+import springframework.core.io.ResourceLoader;
 
 public abstract class AbstractBeanDefinitionReader implements BeanDefinitionReader{
 

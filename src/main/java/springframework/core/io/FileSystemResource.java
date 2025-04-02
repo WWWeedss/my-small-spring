@@ -1,4 +1,4 @@
-package springframework.beans.core.io;
+package springframework.core.io;
 
 import java.io.File;
 import java.io.FileInputStream;

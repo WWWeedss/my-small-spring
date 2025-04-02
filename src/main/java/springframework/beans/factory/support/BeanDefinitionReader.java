@@ -1,8 +1,8 @@
 package springframework.beans.factory.support;
 
 import springframework.beans.BeansException;
-import springframework.beans.core.io.Resource;
-import springframework.beans.core.io.ResourceLoader;
+import springframework.core.io.Resource;
+import springframework.core.io.ResourceLoader;
 
 public interface BeanDefinitionReader {
 

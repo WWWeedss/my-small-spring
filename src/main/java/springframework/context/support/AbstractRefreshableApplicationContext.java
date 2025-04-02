@@ -1,4 +1,4 @@
-package springframework.beans.context.support;
+package springframework.context.support;
 
 import springframework.beans.BeansException;
 import springframework.beans.factory.ConfigurableListableBeanFactory;

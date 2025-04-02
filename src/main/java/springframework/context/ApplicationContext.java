@@ -1,4 +1,4 @@
-package springframework.beans.context;
+package springframework.context;
 
 import springframework.beans.factory.ListableBeanFactory;
 

@@ -1,4 +1,4 @@
-package springframework.beans.core.io;
+package springframework.core.io;
 
 import java.io.IOException;
 import java.io.InputStream;

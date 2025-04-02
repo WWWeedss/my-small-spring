@@ -10,7 +10,7 @@ import springframework.beans.factory.config.AutowireCapableBeanFactory;
 import springframework.beans.factory.config.BeanDefinition;
 import springframework.beans.factory.config.BeanPostProcessor;
 import springframework.beans.factory.config.BeanReference;
-import springframework.beans.utils.BeanUtil;
+import springframework.utils.BeanUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
