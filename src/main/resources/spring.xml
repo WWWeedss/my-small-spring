@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
 
-    <bean id="userDao" class="bean.UserDao" init-method="initDataMethod" destroy-method="destroyDataMethod"/>
-
-    <bean id="userService" class="bean.UserService">
+    <bean id="userService" class="bean.UserService" scope="prototype">
         <property name="uId" value="10001"/>
-        <property name="company" value="淘天"/>
-        <property name="location" value="杭州"/>
-        <property name="userDao" ref="userDao"/>
+        <property name="company" value="腾讯"/>
+        <property name="location" value="深圳"/>
+        <property name="userDao" ref="proxyUserDao"/>
     </bean>
+
+    <bean id="proxyUserDao" class="bean.ProxyBeanFactory"/>
 
 </beans>
