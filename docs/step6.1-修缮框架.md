@@ -85,7 +85,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 ---
 
-获取指定类型的 Bean
+使用泛型获取指定类型的 Bean
 
 ```java
 public interface ListableBeanFactory extends BeanFactory{
@@ -174,6 +174,12 @@ public interface HierarchicalBeanFactory extends BeanFactory {
 
 ##### 如何用 IDEA 查看实现类？
 
+###### 方法零
+
+鼠标点这个绿色小图标就好。
+
+![image-20250511232325317](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250511232325317.png)
+
 ###### 方法一
 
 以查看 ListableBeanFactory 实现类为例。
@@ -206,4 +212,4 @@ ctrl + shift + 左键 快速查看实现类。
 
 ##### 如何查看这个方法被谁调用
 
-选中该方法，按 ctrl + alt + f7 或者 ctrl + alt + h
+选中该方法，按 ctrl + alt + f7 或者 ctrl + alt + h。

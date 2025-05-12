@@ -248,7 +248,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 ---
 
-测试文件：给原来的 UserService 加一个字段。
+##### 测试部分
+
+给原来的 UserService 加一个字段。
 
 ```java
 public class UserService {

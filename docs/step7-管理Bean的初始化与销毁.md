@@ -346,7 +346,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 ---
 
-开始测试：
+##### 测试部分
 
 UserDao，咱把原来的构造函数换成了俩成员方法。
 
@@ -458,7 +458,7 @@ xml 配置文件：给 UserDao 配置初始化方法和销毁方法，UserServic
 </beans>
 ```
 
-测试：
+测试文件：
 
 ```java
 public class ApiTest {
