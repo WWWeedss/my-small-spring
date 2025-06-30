@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans>
+    <beans>
 
-    <bean id="userService" class="bean.UserService" scope="prototype">
-        <property name="uId" value="10001"/>
-        <property name="company" value="腾讯"/>
-        <property name="location" value="深圳"/>
-        <property name="userDao" ref="proxyUserDao"/>
-    </bean>
+        <bean class="event.ContextRefreshedEventListener"/>
 
-    <bean id="proxyUserDao" class="bean.ProxyBeanFactory"/>
+        <bean class="event.CustomEventListener"/>
 
-</beans>
+        <bean class="event.ContextClosedEventListener"/>
+
+    </beans>
