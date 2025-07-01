@@ -20,7 +20,7 @@
 
 文档内有详细的从 0 开始的实现过程，如果您感兴趣，您应当能够从新建空 JAVA 仓库开始完成一个同样的东西。
 
-我的水平比起原仓库 owner 的水平差得很远，但是我会在实现过程中进行更详细的记录和逻辑的梳理，可能这也是“学生思维”的好处所在吧！
+我的水平比起原仓库 owner 的水平还差得远，但是我会在实现过程中进行更详细的记录和逻辑的梳理，可能这也是“学生思维”的好处所在吧~
 
 在这你可以看到啥？
 
@@ -37,6 +37,7 @@
 
 - [x] Bean 的创建与管理
 - [x] 在 xml 文件里配置 Bean
-- [x] Bean 自定义上下文
-- [ ] Spring Event 实现
-- [ ] Spring 对 Restful Api 的支持与封装
+- [x] Bean 自定义上下文、PreProcessor、PostProcessor、Factory Bean 等等
+- [x] Spring Event 实现
+- [ ] Spring AOP
+- [ ] 用注解 + 包扫描配置 Bean
