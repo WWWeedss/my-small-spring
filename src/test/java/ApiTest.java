@@ -84,7 +84,7 @@ public class ApiTest {
         System.out.println("测试结果：" + proxy_jdk.queryUserInfo());
 
         IUserService proxy_cglib = (IUserService) new Cglib2AopProxy(advisedSupport).getProxy();
-        System.out.println("测试结果：" + proxy_cglib.register("花花"));
+        System.out.println("测试结果：" + proxy_cglib.register("占鑫"));
     }
 }
 
