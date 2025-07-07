@@ -1,4 +1,6 @@
 package springframework.aop;
 
-public class BeforeAdvice {
+import org.aopalliance.aop.Advice;
+
+public interface BeforeAdvice extends Advice {
 }
