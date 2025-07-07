@@ -227,6 +227,8 @@ public class AspectJExpressionPointcutAdvisor implements PointcutAdvisor {
 
 ![image-20250707201532188](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250707201532188.png)
 
+我们增加一个作用在 beanClass 上的 BeanPostProcessor：
+
 ```java
 public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
     /**
@@ -234,24 +236,180 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
      */
     Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException;
 }
-
 ```
 
+> 为什么不直接代理已经创建好的 Bean？
 
+修改 AbstractAutowireCapableBeanFactory：
+
+```java
+public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
+    @Override
+    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
+        Object bean;
+        try {
+            // 判断是否返回代理 bean 对象
+            bean = resolveBeforeInstantiation(beanName, beanDefinition);
+            if (bean != null) {
+                return bean;
+            }
+            // 实例化 Bean
+            bean = createBeanInstance(beanDefinition, beanName, args);
+            // 给 Bean 填充属性
+            applyPropertyValues(beanName, bean, beanDefinition);
+
+            // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
+            bean = initializeBean(beanName, bean, beanDefinition);
+        } catch (Exception e) {
+            throw new BeansException("Instantiation of bean failed", e);
+        }
+        ……
+    }
+
+    protected Object resolveBeforeInstantiation(String beanName, BeanDefinition beanDefinition) {
+        Object bean = applyBeanPostProcessorsBeforeInstantiation(beanDefinition.getBeanClass(), beanName);
+        if (bean != null) {
+            bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+        }
+        return bean;
+    }
+
+    protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                Object result = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessBeforeInstantiation(beanClass, beanName);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+}
+```
+
+##### 实现 DefaultAdvisorAutoProxyCreator
+
+即要注册的 BeanPostProcessor：
+
+```java
+public class DefaultAdvisorAutoProxyCreator implements InstantiationAwareBeanPostProcessor, BeanFactoryAware{
+
+    private DefaultListableBeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = (DefaultListableBeanFactory) beanFactory;
+    }
+
+    @Override
+    public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+
+        if (isInfrastructureClass(beanClass)) return null;
+
+        Collection<AspectJExpressionPointcutAdvisor> advisors = beanFactory.getBeansOfType(AspectJExpressionPointcutAdvisor.class).values();
+
+        for (AspectJExpressionPointcutAdvisor advisor : advisors) {
+            ClassFilter classFilter = advisor.getPointcut().getClassFilter();
+            if (!classFilter.matches(beanClass)) continue;
+
+            AdvisedSupport advisedSupport = new AdvisedSupport();
+
+            TargetSource targetSource = null;
+            try {
+                targetSource = new TargetSource(beanClass.getDeclaredConstructor().newInstance());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            advisedSupport.setTargetSource(targetSource);
+            advisedSupport.setMethodInterceptor((MethodInterceptor) advisor.getAdvice());
+            advisedSupport.setMethodMatcher(advisor.getPointcut().getMethodMatcher());
+            advisedSupport.setProxyTargetClass(false);
+
+            return new ProxyFactory(advisedSupport).getProxy();
+        }
+
+        return null;
+    }
+
+    private boolean isInfrastructureClass(Class<?> beanClass){
+        return Advice.class.isAssignableFrom(beanClass) || Pointcut.class.isAssignableFrom(beanClass) || Advisor.class.isAssignableFrom(beanClass);
+    }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        return bean;
+    }
+}
+```
+
+##### 测试
+
+IUserService 和 UserService 不变。
+
+###### UserServiceBeforeAdvice
+
+```java
+public class UserServiceBeforeAdvice implements MethodBeforeAdvice {
+    @Override
+    public void before(Method method, Object[] args, Object target) throws Throwable {
+        System.out.println("拦截方法：" + method.getName());
+    }
+}
+```
+
+###### spring.xml
+
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+
+    <bean id="userService" class="bean.UserService"/>
+
+    <bean class="springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+    <bean id="beforeAdvice" class="bean.UserServiceBeforeAdvice"/>
+
+    <bean id="methodInterceptor" class="springframework.aop.framework.adapter.MethodBeforeAdviceInterceptor">
+        <property name="advice" ref="beforeAdvice"/>
+    </bean>
+
+    <bean id="pointcutAdvisor" class="springframework.aop.aspectj.AspectJExpressionPointcutAdvisor">
+        <property name="expression" value="execution(* bean.IUserService.*(..))"/>
+        <property name="advice" ref="methodInterceptor"/>
+    </bean>
+
+</beans>
+```
+
+###### ApiTest
+
+```java
+public class ApiTest {
+    @Test
+    public void test_aop() throws NoSuchMethodException {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
+
+        IUserService userService = applicationContext.getBean("userService", IUserService.class);
+        System.out.println(userService.queryUserInfo());
+    }
+}
+```
 
 #### 疑惑与思考
 
 ##### 这种代理的实现不是无法存储属性了么？
 
-目前的逻辑是的，一旦匹配到返回代理，那么 applyProperties 等等逻辑根本不会被执行。
+目前的逻辑是的，一旦匹配到返回代理，那么 applyProperties 等等逻辑根本不会被执行，被代理的 Bean 就是没有被注入属性的裸对象。
 
 ##### 为什么需要 BeforeAdvice？
 
-MethodBeforeAdvice 是 BeforeAdvice 的唯一子类，为什么还需要 BeforeAdvice 呢？它在框架中怎么使用？
+MethodBeforeAdvice 是 BeforeAdvice 的唯一子类，BeforeAdvice 也没有定义接口方法，为什么还需要 BeforeAdvice 呢？这里目前只是有一个语义的作用，没有其他特殊含义，除非在后续增加 ClassBeforeAdvice（但是不可能，因为我们的 Pointcut 已经定义了 ClassFilter，这个功能已经被实现了）。
 
 #### 其他相关
-
-#### Bug 记录
 
 ##### 缺乏对应构造器
 
