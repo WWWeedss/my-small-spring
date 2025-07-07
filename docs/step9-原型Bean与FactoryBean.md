@@ -152,7 +152,12 @@ XmlBeanDefinitionReader#parseBeanElement
  protected void parseBeanElement(Element bean) throws ClassNotFoundException {
         ……
         // 创建 BeanDefinition
-        beanDefinition.setScope(bean.getAttribute("scope"));
+        ……
+        String beanScope = bean.getAttribute("scope");
+        
+        if (StrUtil.isNotEmpty(beanScope)) {
+            beanDefinition.setScope(beanScope);
+        }
 
         // 注册 BeanDefinition
         getRegistry().registerBeanDefinition(beanName, beanDefinition);
