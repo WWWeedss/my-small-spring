@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import springframework.beans.BeansException;
 import springframework.beans.PropertyValue;
+import springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import springframework.core.io.Resource;
 import springframework.core.io.ResourceLoader;
 import springframework.beans.factory.config.BeanDefinition;
@@ -59,6 +60,16 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
     protected void doLoadBeanDefinitions(InputStream inputStream) throws ClassNotFoundException {
         Document doc = XmlUtil.readXML(inputStream);
         Element root = doc.getDocumentElement();
+
+        Element componentScan = XmlUtil.getElement(root, "component-scan");
+        if (componentScan != null) {
+            String scanPath = componentScan.getAttribute("base-package");
+            if(StrUtil.isEmpty(scanPath)) {
+                throw new BeansException("The value of base-package attribute must not be empty");
+            }
+            scanPackage(scanPath);
+        }
+
         NodeList childNodes = root.getChildNodes();
 
         for(int i = 0; i < childNodes.getLength(); i++){
@@ -98,7 +109,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
             beanDefinition.setScope(beanScope);
         }
 
-        // 解析 Bean 属性并填充
+        // 解析 Bean 的属性并填充
         for(int j = 0; j < bean.getChildNodes().getLength(); j++){
             if(!(bean.getChildNodes().item(j) instanceof Element)){
                 continue;
@@ -127,5 +138,11 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
         PropertyValue propertyValue = new PropertyValue(attrName, value);
         beanDefinition.getPropertyValues().addPropertyValue(propertyValue);
+    }
+
+    private void scanPackage(String scanPath) {
+        String[] basePackages = StrUtil.splitToArray(scanPath, ",");
+        ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(getRegistry());
+        scanner.doScan(basePackages);
     }
 }
