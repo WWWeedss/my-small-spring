@@ -5,6 +5,6 @@
     </bean>
 
     <bean id="userService" class="bean.UserService">
-        <property name="token" value="${token}"/>
+        <property name="token" value="${token} a ${token}"/>
     </bean>
 </beans>

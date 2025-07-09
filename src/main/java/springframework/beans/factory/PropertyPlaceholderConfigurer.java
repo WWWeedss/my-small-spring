@@ -43,12 +43,13 @@ public class PropertyPlaceholderConfigurer implements BeanFactoryPostProcessor {
                     int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
                     int stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
                     
-                    if (startIdx != -1 && stopIdx != -1 && startIdx < stopIdx) {
-                        String propKey = strVal.substring(startIdx + 2, stopIdx);
-                        String propVal = properties.getProperty(propKey);
-                        buffer.replace(startIdx, stopIdx + 1, propVal);
-                        propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), buffer.toString()));
+                    while (startIdx != -1 && stopIdx != -1 && startIdx < stopIdx) {
+                        buffer.replace(startIdx, stopIdx + 1, properties.getProperty(strVal.substring(startIdx + 2, stopIdx)));
+                        strVal = buffer.toString();
+                        startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+                        stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
                     }
+                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), strVal));
                 }
             }
         } catch (IOException e) {
