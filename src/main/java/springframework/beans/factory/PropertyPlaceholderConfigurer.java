@@ -7,6 +7,7 @@ import springframework.beans.factory.config.BeanDefinition;
 import springframework.beans.factory.config.BeanFactoryPostProcessor;
 import springframework.core.io.DefaultResourceLoader;
 import springframework.core.io.Resource;
+import springframework.utils.StringValueResolver;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -38,22 +39,55 @@ public class PropertyPlaceholderConfigurer implements BeanFactoryPostProcessor {
                 for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
                     Object value = propertyValue.getValue();
                     if (!(value instanceof String)) continue;
-                    String strVal = (String) value;
-                    StringBuilder buffer = new StringBuilder(strVal);
-                    int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
-                    int stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
-                    
-                    while (startIdx != -1 && stopIdx != -1 && startIdx < stopIdx) {
-                        buffer.replace(startIdx, stopIdx + 1, properties.getProperty(strVal.substring(startIdx + 2, stopIdx)));
-                        strVal = buffer.toString();
-                        startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
-                        stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
-                    }
-                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), strVal));
+                    // 解析占位符
+                    value = resolvePlaceholder((String) value, properties);
+                    // 更新属性值
+                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), value));
                 }
             }
+
+            StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(properties);
+            // 向容器中添加字符串解析器，供解析@Value注解使用
+            beanFactory.addEmbeddedValueResolver(valueResolver);
         } catch (IOException e) {
             throw new BeansException("Could not load properties from location: " + location, e);
+        }
+    }
+    
+    private String resolvePlaceholder(String value, Properties properties) {
+        String strVal = value;
+        StringBuilder buffer = new StringBuilder(strVal);
+        int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+        int stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
+        while (startIdx != -1 && stopIdx != -1 && startIdx < stopIdx) {
+            String propKey = strVal.substring(startIdx + 2, stopIdx);
+            String propVal = properties.getProperty(propKey);
+            // 如果属性值不存在，则跳过当前占位符
+            if (propVal == null) {
+                startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX, stopIdx + 1);
+                stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX, startIdx + 1);
+                continue;
+            }
+            // 替换占位符
+            buffer.replace(startIdx, stopIdx + 1, propVal);
+            strVal = buffer.toString();
+            startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+            stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
+        }
+        return buffer.toString();
+    }
+    
+    private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
+        
+        private final Properties properties;
+        
+        public PlaceholderResolvingStringValueResolver(Properties properties) {
+            this.properties = properties;
+        }
+        @Override
+        public String resolveStringValue(String strVal) {
+            // 引用外部类实例
+            return PropertyPlaceholderConfigurer.this.resolvePlaceholder(strVal, properties);
         }
     }
 }

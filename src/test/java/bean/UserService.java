@@ -1,13 +1,18 @@
 package bean;
 
+import springframework.beans.factory.annotation.Autowired;
+import springframework.beans.factory.annotation.Value;
 import springframework.stereotype.Component;
 
 import java.util.Random;
 @Component("userService")
-
 public class UserService implements IUserService {
 
+    @Value("${token}")
     private String token;
+    
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public String queryUserInfo() {
@@ -16,7 +21,7 @@ public class UserService implements IUserService {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-        return "WWWeeds, 100001, 杭州";
+        return userDao.queryUserName("1") + "，" + token;
     }
 
 
@@ -41,6 +46,14 @@ public class UserService implements IUserService {
 
     public void setToken(String token) {
         this.token = token;
+    }
+    
+    public UserDao getUserDao() {
+        return userDao;
+    }
+    
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
     }
 }
 
