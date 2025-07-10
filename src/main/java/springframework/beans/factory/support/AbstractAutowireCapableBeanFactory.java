@@ -51,7 +51,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return bean;
     }
     
-    protected  void applyBeanPostProcessorsBeforeApplyingPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
+    protected void applyBeanPostProcessorsBeforeApplyingPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
         
         PropertyValues pvs = beanDefinition.getPropertyValues();
         for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {

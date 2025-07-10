@@ -3,6 +3,6 @@
      <bean class="springframework.beans.factory.PropertyPlaceholderConfigurer">
          <property name="location" value="classpath:token.properties"/>
      </bean>
-    
+
     <component-scan base-package="bean"/>
 </beans>
