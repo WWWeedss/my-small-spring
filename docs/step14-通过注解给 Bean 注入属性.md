@@ -2,6 +2,21 @@
 
 #### 前置思考
 
+我们之前实现了解析 properties 文件以及替换占位符，以及用注解注册 Bean，现在我们需要用注解去给 Bean 添加字段属性，即 property 里的内容。
+
+我们可以用 BeanDefinition 找到对应的 BeanClass，然后用反射取出其中的字段，找到用注解标注的那部分。
+
+1. 基础类型，用 @Value 直接标注要注入的值。
+2. 引用类型，用 @Autowired 标注，我们会用 getBean 创建它。
+
+ 这个显然是 Bean 实例化之后，用 xml 配置填充属性之前做的事情，所以我们可以用 BeanPostProcessor 实现这个字段注入器。
+
+步骤：
+
+1. 定义相关注解
+2. 编写实现了 BeanPostProcessor 的字段注入器
+3. 将字段注入器注册到单例 Bean 内
+
 #### 具体实现
 
 ```bash
@@ -38,7 +53,6 @@ src
 │   │       │   ├── PropertyValues.java
 │   │       │   └── factory
 │   │       │       ├── Aware.java
-│   │       │       ├── BeanClassLoaderAware.java --new
 │   │       │       ├── BeanFactory.java --change
 │   │       │       ├── BeanFactoryAware.java
 │   │       │       ├── BeanNameAware.java
@@ -127,6 +141,276 @@ src
             ├── UserDao.java --new 
             └── UserService.java --change
 
+```
+
+##### 让 @Value 也可以使用占位符拿取 properties 配置值
+
+在正式开始之前，先来延续一下上次的内容。现在我们在 xml 配置内可以使用占位符，原理是使用 PropertyPlaceholderConfigurer 去读取 properties 文件并修改 BeanDefinition 中 property 的 value 值。BeanFactoryProcessor 的作用在 BeanProcessor 之前，显然没法直接复用了。
+
+我们采取这种方式：让 PropertyPlaceholderConfigurer 把读取的 properties 保存下来，并向外暴露一个字符串解析器，输入一个字符串，解析掉所有能解析的占位符。
+
+![image-20250711082232880](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250711082232880.png)
+
+定义一个解析字符串的接口：
+
+```java
+public interface StringValueResolver {
+    String resolveStringValue(String strVal);
+}
+```
+
+在 BeanFactory 中定义增加字符串解析器与解析字符的接口。
+
+```java
+public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry {
+    //……
+    // 添加一个字符串解析器，用于处理注解标记的配置注入
+    void addEmbeddedValueResolver(StringValueResolver valueResolver);
+    
+    // 解析${}嵌入的值
+    String resolveEmbeddedValue(String value);
+}
+```
+
+```java
+public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport implements ConfigurableBeanFactory {
+
+    
+    private final List<StringValueResolver> embeddedValueResolvers = new ArrayList<>();
+
+    @Override
+    public void addEmbeddedValueResolver(StringValueResolver valueResolver) {
+        this.embeddedValueResolvers.add(valueResolver);
+    }
+
+    @Override
+    public String resolveEmbeddedValue(String value) {
+        String result = value;
+        for (StringValueResolver resolver : this.embeddedValueResolvers) {
+            result = resolver.resolveStringValue(result);
+        }
+        return result;
+    }
+}
+
+```
+
+在 PropertyPlaceholderConfigurer 中添加一个私有类，持有解析获得的 properties，放到 BeanFactory 里面去。
+
+```java
+public class PropertyPlaceholderConfigurer implements BeanFactoryPostProcessor {
+    
+    public static final String DEFAULT_PLACEHOLDER_PREFIX = "${";
+    
+    public static final String DEFAULT_PLACEHOLDER_SUFFIX = "}";
+    
+    private String location;
+    
+    public void setLocation(String location) {
+        this.location = location;
+    }
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        try {
+            DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
+            Resource resource = resourceLoader.getResource(location);
+            Properties properties = new Properties();
+            properties.load(resource.getInputStream());
+            
+            String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
+            for (String beanName : beanDefinitionNames) {
+                BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+
+                PropertyValues propertyValues = beanDefinition.getPropertyValues();
+                for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
+                    Object value = propertyValue.getValue();
+                    if (!(value instanceof String)) continue;
+                    // 解析占位符
+                    value = resolvePlaceholder((String) value, properties);
+                    // 更新属性值
+                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), value));
+                }
+            }
+
+            StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(properties);
+            // 向容器中添加字符串解析器，供解析@Value注解使用
+            beanFactory.addEmbeddedValueResolver(valueResolver);
+        } catch (IOException e) {
+            throw new BeansException("Could not load properties from location: " + location, e);
+        }
+    }
+    
+    private String resolvePlaceholder(String value, Properties properties) {
+        String strVal = value;
+        StringBuilder buffer = new StringBuilder(strVal);
+        int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+        int stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
+        while (startIdx != -1 && stopIdx != -1 && startIdx < stopIdx) {
+            String propKey = strVal.substring(startIdx + 2, stopIdx);
+            String propVal = properties.getProperty(propKey);
+            // 如果属性值不存在，则跳过当前占位符
+            if (propVal == null) {
+                startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX, stopIdx + 1);
+                stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX, startIdx + 1);
+                continue;
+            }
+            // 替换占位符
+            buffer.replace(startIdx, stopIdx + 1, propVal);
+            strVal = buffer.toString();
+            startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+            stopIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
+        }
+        return buffer.toString();
+    }
+    
+    private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
+        
+        private final Properties properties;
+        
+        public PlaceholderResolvingStringValueResolver(Properties properties) {
+            this.properties = properties;
+        }
+        @Override
+        public String resolveStringValue(String strVal) {
+            // 引用外部类实例
+            return PropertyPlaceholderConfigurer.this.resolvePlaceholder(strVal, properties);
+        }
+    }
+}
+```
+
+好了，后续我们就可以使用这个字符串解析器了。
+
+##### 定义注解
+
+@Autowired
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD})
+public @interface Autowired {
+}
+```
+
+@Qualifier，与 @Autowired 联合使用，指定要注入的 BeanName。
+
+```java
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE, ElementType.ANNOTATION_TYPE}) 
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface Qualifier {
+    String value() default "";
+}
+```
+
+@Value，注入基础字段
+
+```java
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Value {
+    String value();
+}
+```
+
+##### 字段解析器
+
+这是一个 spring 的内嵌能力，有特定的参数和返回值，我们先在 InstantiationAwareBeanPostProcessor 添加接口：
+```java
+public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
+    /**
+     * Post-process the given property values before the factory applies them
+     * to the given bean. Allows for checking whether all dependencies have been
+     * satisfied, for example based on a "Required" annotation on bean property setters.
+     *
+     * 在 Bean 对象实例化完成后，设置属性操作之前执行此方法
+     *
+     * @param pvs
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
+    PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName) throws BeansException;
+
+}
+```
+
+在不需要实现 postProcessPropertyValues 的 BeanPostProcessor 中直接返回 pvs 就好了，注意不要返回 null，这个 pvs 返回出去是要给 BeanFactory 更新 Bean 的 BeanDefinition 的。
+
+这就是字段解析器，可以看到传入了 PropertyValues，但是我们并不用 pvs 里面的值去
+
+```java
+public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {
+    private ConfigurableListableBeanFactory beanFactory;
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+    }
+
+    @Override
+    public PropertyValues postProcessPropertyValues(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+        // 处理 @Value
+        Class<?> clazz = bean.getClass();
+        clazz = ClassUtils.isCglibProxyClass(clazz) ? clazz.getSuperclass() : clazz;
+
+        Field[] declaredFields = clazz.getDeclaredFields();
+        
+        for (Field field : declaredFields) {
+            Value valueAnnotation = field.getAnnotation(Value.class);
+            if (valueAnnotation != null) {
+                String value = valueAnnotation.value();
+                value = beanFactory.resolveEmbeddedValue(value);
+                try {
+                    BeanUtil.setFieldValue(bean, field.getName(), value);
+                } catch (NoSuchFieldException e) {
+                    throw new BeansException("Failed to set field value for " + field.getName(), e);
+                }
+            }
+        }
+        
+        // 处理 @Autowired
+        for (Field field : declaredFields) {
+            Autowired autowiredAnnotation = field.getAnnotation(Autowired.class);
+           if (autowiredAnnotation != null) {
+               Class<?> fieldType = field.getType();
+                String dependentBeanName = null;
+                Qualifier qualifierAnnotation = field.getAnnotation(Qualifier.class);
+                Object dependentBean = null;
+                if (qualifierAnnotation != null) {
+                    dependentBeanName = qualifierAnnotation.value();
+                    dependentBean = beanFactory.getBean(dependentBeanName, fieldType);
+                } else {
+                    dependentBean = beanFactory.getBean(fieldType);
+                }
+                try {
+                    BeanUtil.setFieldValue(bean, field.getName(), dependentBean);
+                } catch (NoSuchFieldException e) {
+                    throw new BeansException("Failed to set field value for " + field.getName(), e);
+                }
+           }
+        }
+        
+        return pvs;
+    }
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        return null;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        return null;
+    }
+
+    @Override
+    public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+        return null;
+    }
+}
 ```
 
 
