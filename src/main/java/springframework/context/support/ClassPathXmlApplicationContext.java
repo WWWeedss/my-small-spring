@@ -1,6 +1,6 @@
 package springframework.context.support;
 
-public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext{
+public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
     private String[] configLocations;
 
     public ClassPathXmlApplicationContext() {

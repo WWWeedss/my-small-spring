@@ -315,7 +315,7 @@ public @interface Value {
 }
 ```
 
-##### 字段解析器
+##### 字段注入器
 
 这是一个 spring 的内嵌能力，有特定的参数和返回值，我们先在 InstantiationAwareBeanPostProcessor 添加接口：
 ```java
@@ -340,7 +340,70 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 
 在不需要实现 postProcessPropertyValues 的 BeanPostProcessor 中直接返回 pvs 就好了，注意不要返回 null，这个 pvs 返回出去是要给 BeanFactory 更新 Bean 的 BeanDefinition 的。
 
-这就是字段解析器，可以看到传入了 PropertyValues，但是我们并不用 pvs 里面的值去
+然后再再 BeanFactory 中增加一个 getBean(Class\<T> requiredType) 的接口，可以直接通过 Class 信息去 getBean，不需要 BeanName，用在只有 @Autowired 没有 @Qualifier 的时候。
+
+```java
+public interface BeanFactory {    
+    <T> T getBean(Class<T> requiredType) throws BeansException;
+}
+```
+
+实现一下：
+
+```java
+public abstract class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext {
+    @Override
+    public Object getBean(String name) throws BeansException {
+        return getBeanFactory().getBean(name);
+    }
+
+    @Override
+    public Object getBean(String name, Object... args) throws BeansException {
+        return getBeanFactory().getBean(name, args);
+    }
+
+    @Override
+    public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
+        return getBeanFactory().getBean(name, requiredType);
+    }
+
+    @Override
+    public <T> T getBean(Class<T> requiredType) throws BeansException {
+        return getBeanFactory().getBean(requiredType);
+    }
+
+}
+
+```
+
+可以看到，当匹配到多个符合的类型时会报错。在现代 SpringBoot 中，可以用 @Autowired 去修饰 List，以获取 ServiceImpl 的列表，这就是把所有符合类型的匹配类都放进来了。
+
+```java
+public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements BeanDefinitionRegistry, ConfigurableListableBeanFactory {
+
+    private final Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+
+    @Override
+    public <T> T getBean(Class<T> requiredType) throws BeansException {
+        List<String> beanNames = new ArrayList<>();
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+            Class<?> beanClass = entry.getValue().getBeanClass();
+            if (requiredType.isAssignableFrom(beanClass)) {
+                beanNames.add(entry.getKey());
+            }
+        }
+        
+        if (beanNames.size() == 1) {
+            return getBean(beanNames.get(0), requiredType);
+        }
+        
+        throw new BeansException(requiredType + " expected single bean but found " + beanNames.size() + ": " + beanNames);
+    }
+}
+```
+
+这就是字段注入器，可以看到传入了 PropertyValues，但是我们并不用 pvs 里面的值去做任何判断，这里的 pvs 是用来传给 BeanFactory 修改 BeanDefinition 来让 BeanDefinition 和 Bean 的实际字段一致的（虽然这里并没有任何体现，postProcessPropertyValues 并没有修改 pvs）。
 
 ```java
 public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareBeanPostProcessor, BeanFactoryAware {
@@ -413,8 +476,215 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
 }
 ```
 
+##### 注册并使用字段注入器
 
+先找个地方把字段注入器注册成 Bean。其实在任何在字段注入之前的流程，并且拥有 BeanDefinitionRegistry，都可以做这件事。我们不妨把它和扫描 Component 的 Bean 注册器放到一起。
+
+> 其实感觉使用 registerSingleton 也可以，之前的事件发布者就是用 registerSingleton 注册的，对比 registerBeanDefinition 来说没有走 BeanDefinition -> Bean 的这一步。
+>
+> 用 addBeanPostProcessor 也行，负责感知功能的 BeanPostProcessor 就是用 addBeanPostProcessor 注册的，对比 registerBeanDefinition 来说，不光没有 BeanDefiniton，DI 容器里面也没有这个 Bean，只作为 BeanPostProcessor 存在。
+
+```java
+public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider{
+
+    private BeanDefinitionRegistry registry;
+
+    public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry) {
+        this.registry = registry;
+    }
+
+    public void doScan(String... basePackages) {
+        for (String basePackage : basePackages){
+            Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+            for (BeanDefinition candidate : candidates) {
+                String beanScope = resolveBeanScope(candidate);
+                if (StrUtil.isNotEmpty(beanScope)) {
+                    candidate.setScope(beanScope);
+                }
+                registry.registerBeanDefinition(determineBeanName(candidate), candidate);
+            }
+        }
+
+        // 注册处理 @Autowired、@Value 的解析器
+        registry.registerBeanDefinition("springframework.context.annotation.internalAutowiredAnnotationBeanPostProcessor", new BeanDefinition(AutowiredAnnotationBeanPostProcessor.class));
+    }
+}
+
+```
+
+在 createBean 的 BeanFactory 中使用：
+
+```java
+public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
+    private InstantiationStrategy instantiationStrategy = new CglibSubclassingInstantiationStrategy();
+
+    public void setInstantiationStrategy(InstantiationStrategy instantiationStrategy) {
+        this.instantiationStrategy = instantiationStrategy;
+    }
+    @Override
+    protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
+        Object bean;
+        try {
+            // 判断是否返回代理 bean 对象
+            bean = resolveBeforeInstantiation(beanName, beanDefinition);
+            if (bean != null) {
+                return bean;
+            }
+            // 实例化 Bean
+            bean = createBeanInstance(beanDefinition, beanName, args);
+            
+            // 在设置 Bean 属性之前，使用 BeanPostProcessor 修改属性值
+            applyBeanPostProcessorsBeforeApplyingPropertyValues(beanName, bean, beanDefinition);
+            
+            // 给 Bean 填充属性
+            applyPropertyValues(beanName, bean, beanDefinition);
+
+            // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
+            bean = initializeBean(beanName, bean, beanDefinition);
+        } catch (Exception e) {
+            throw new BeansException("Instantiation of bean failed", e);
+        }
+
+        // 注册实现了 DisposableBean 接口的 Bean 对象
+        registerDisposableBeanIfNecessary(beanName, bean, beanDefinition);
+
+        // 判断 SCOPE_SINGLETON、SCOPE_PROTOTYPE
+        if (beanDefinition.isSingleton()) {
+            registerSingleton(beanName, bean);
+        }
+        return bean;
+    }
+    
+    protected void applyBeanPostProcessorsBeforeApplyingPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
+        
+        PropertyValues pvs = beanDefinition.getPropertyValues();
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) beanPostProcessor;
+                PropertyValues postProcessedPvs = ibp.postProcessPropertyValues(pvs, bean, beanName);
+                if (postProcessedPvs != null) {
+                    pvs = postProcessedPvs;
+                }
+            }
+        }
+        
+        // 将处理后的属性值重新设置到 BeanDefinition 中
+        for (PropertyValue propertyValue : pvs.getPropertyValues()) {
+            beanDefinition.getPropertyValues().addPropertyValue(propertyValue);
+        }
+    }
+}
+
+```
+
+##### 测试
+
+###### 配置文件
+
+spring.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+     <bean class="springframework.beans.factory.PropertyPlaceholderConfigurer">
+         <property name="location" value="classpath:token.properties"/>
+     </bean>
+
+    <component-scan base-package="bean"/>
+</beans>
+```
+
+token.properties
+
+```properties
+token=HelloWorld
+```
+
+###### Bean
+
+```java
+@Component("userDao")
+public class UserDao {
+    private static Map<String, String> hashMap = new HashMap<>();
+    
+    static {
+        hashMap.put("1", "张三");
+        hashMap.put("2", "李四");
+        hashMap.put("3", "王五");
+    }
+    
+    public String queryUserName(String uId) {
+        return hashMap.get(uId);
+    }
+}
+```
+
+```java
+@Component("userService")
+public class UserService implements IUserService {
+
+    @Value("${token}")
+    private String token;
+    
+    @Autowired
+    private UserDao userDao;
+
+    @Override
+    public String queryUserInfo() {
+        try {
+            Thread.sleep(new Random(1).nextInt(100));
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
+        return userDao.queryUserName("1") + "，" + token;
+    }
+
+
+    @Override
+    public String register(String userName) {
+        try {
+            Thread.sleep(new Random(1).nextInt(100));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return "注册用户:" + userName + "success!";
+    }
+
+    @Override
+    public String toString() {
+        return "UserService#token = " + token;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
+    public UserDao getUserDao() {
+        return userDao;
+    }
+    
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
+}
+
+```
+
+###### ApiTest
+
+```java
+public class ApiTest {
+    @Test
+    public void test_scan() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
+        IUserService userService = applicationContext.getBean("userService", IUserService.class);
+        System.out.println(userService.queryUserInfo());
+    }
+}
+```
 
 #### 疑惑与思考
-
-#### 其他相关
