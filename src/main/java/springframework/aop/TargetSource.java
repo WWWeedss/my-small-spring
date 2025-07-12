@@ -10,11 +10,17 @@ public class TargetSource {
         this.target = target;
     }
 
-    public Class<?>[] getTargetClass() {
+    public Class<?>[] getTargetInterfaces() {
         // 获取目标对象实现的所有接口，对于 JDK 的动态代理，必须要有接口才行
         Class<?> clazz = this.target.getClass();
         clazz = ClassUtils.isCglibProxyClass(clazz) ? clazz.getSuperclass() : clazz;
         return clazz.getInterfaces();
+    }
+
+    public Class<?> getTargetClass() {
+        Class<?> clazz = this.target.getClass();
+        clazz = ClassUtils.isCglibProxyClass(clazz) ? clazz.getSuperclass() : clazz;
+        return clazz;
     }
 
     public Object getTarget() {

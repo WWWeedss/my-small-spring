@@ -12,10 +12,14 @@ public class UserService1 implements IUserService{
 
     @Override
     public String queryUserInfo() {
+        try {
+            Thread.sleep(new Random(1).nextInt(100));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return "这是 UserService1 的用户信息";
     }
 
-    @Override
     public String queryAnotherUserInfo() {
         return "这是在 UserService1 中调用的：" + userService2.queryUserInfo();
     }

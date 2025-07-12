@@ -48,3 +48,5 @@ new ObjectFactory<>() {
 
 ##### java.lang.IllegalArgumentException: Can not set bean.UserService2 field bean.UserService1.userService2 to com.sun.proxy.$Proxy6 的报错
 
+1. Cglib 进行 AOP 动态代理生成
+2. 修订 step15           

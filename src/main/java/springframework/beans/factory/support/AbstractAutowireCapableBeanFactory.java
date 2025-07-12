@@ -45,6 +45,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         // 注册实现了 DisposableBean 接口的 Bean 对象
         registerDisposableBeanIfNecessary(beanName, bean, beanDefinition);
 
+        // 判断二级缓存中是否有对应的 Bean 对象，如果有，保持引用一致
+        // 这里是防止这个 Bean 已经被代理，此时需要保持引用一致
+        Object earlySingletonRef = getSingleton(beanName);
+        if (earlySingletonRef != null) {
+            bean = earlySingletonRef;
+        }
+
         // 判断 SCOPE_SINGLETON、SCOPE_PROTOTYPE
         if (beanDefinition.isSingleton()) {
             registerSingleton(beanName, bean);
