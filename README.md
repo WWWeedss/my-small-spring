@@ -40,6 +40,6 @@
 - [x] Bean 自定义上下文、PreProcessor、PostProcessor、Factory Bean 等等
 - [x] Bean 的感知功能
 - [x] Spring Event 实现
-- [ ] Spring AOP
-- [ ] 用注解 + 包扫描配置 Bean
+- [x] Spring AOP
+- [x] 用注解 + 包扫描配置 Bean
 
