@@ -21,7 +21,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
         Object bean;
         try {
-            // 判断是否返回代理 bean 对象
+            // 判断是否返回特殊的 bean 对象（实例化逻辑之间就创建返回）
             bean = resolveBeforeInstantiation(beanName, beanDefinition);
             if (bean != null) {
                 return bean;
