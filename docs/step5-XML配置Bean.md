@@ -504,7 +504,7 @@ system.key=OLpj9823dZ
 
     <bean id="userDao" class="bean.UserDao"/>
 
-    <bean id="userService" class="bean.UserService">
+    <bean id="userService" class="bean.UserService1">
         <property name="uId" value="10001"/>
         <property name="userDao" ref="userDao"/>
     </bean>

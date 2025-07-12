@@ -448,7 +448,7 @@ xml 配置文件：给 UserDao 配置初始化方法和销毁方法，UserServic
 
     <bean id="userDao" class="bean.UserDao" init-method="initDataMethod" destroy-method="destroyDataMethod"/>
 
-    <bean id="userService" class="bean.UserService">
+    <bean id="userService" class="bean.UserService1">
         <property name="uId" value="10001"/>
         <property name="company" value="淘天"/>
         <property name="location" value="杭州"/>

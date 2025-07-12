@@ -18,7 +18,7 @@ token=HelloWorld
 Xml 配置文件：
 
 ```xml
-  <bean id="userService" class="bean.UserService">
+  <bean id="userService" class="bean.UserService1">
       <property name="token" value="${token}"/>
   </bean>
 ```
@@ -369,7 +369,7 @@ spring-property.xml
         <property name="location" value="classpath:token.properties"/>
     </bean>
 
-    <bean id="userService" class="bean.UserService">
+    <bean id="userService" class="bean.UserService1">
         <property name="token" value="${token} a ${token}"/>
     </bean>
 </beans>

@@ -21,13 +21,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object createBean(String beanName, BeanDefinition beanDefinition, Object[] args) throws BeansException {
         Object bean;
         try {
-            // 判断是否返回特殊的 bean 对象（实例化逻辑之间就创建返回）
-            bean = resolveBeforeInstantiation(beanName, beanDefinition);
-            if (bean != null) {
-                return bean;
-            }
             // 实例化 Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
+
+            // 处理循环依赖，将实例化后的 bean 提前放入缓存中储存起来
+            if (beanDefinition.isSingleton()) {
+                Object finalBean = bean;
+                addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
+            }
             
             // 在设置 Bean 属性之前，使用 BeanPostProcessor 修改属性值
             applyBeanPostProcessorsBeforeApplyingPropertyValues(beanName, bean, beanDefinition);
@@ -49,6 +50,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             registerSingleton(beanName, bean);
         }
         return bean;
+    }
+
+    protected Object getEarlyBeanReference(String beanName, BeanDefinition beanDefinition, Object bean) {
+        Object exposedObject = bean;
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                exposedObject = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).getEarlyBeanReference(exposedObject, beanName);
+                if (exposedObject == null) {
+                    return exposedObject;
+                }
+            }
+        }
+        return exposedObject;
     }
     
     protected void applyBeanPostProcessorsBeforeApplyingPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {

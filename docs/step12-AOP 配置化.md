@@ -367,7 +367,7 @@ public class UserServiceBeforeAdvice implements MethodBeforeAdvice {
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
 
-    <bean id="userService" class="bean.UserService"/>
+    <bean id="userService" class="bean.UserService1"/>
 
     <bean class="springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
 

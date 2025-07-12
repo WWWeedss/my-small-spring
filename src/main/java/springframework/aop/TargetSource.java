@@ -18,6 +18,6 @@ public class TargetSource {
     }
 
     public Object getTarget() {
-        return target;
+        return this.target;
     }
 }

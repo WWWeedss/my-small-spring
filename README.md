@@ -42,4 +42,4 @@
 - [x] Spring Event 实现
 - [x] Spring AOP
 - [x] 用注解 + 包扫描配置 Bean
-
+- [x] 用多级缓存解决 Bean 循环依赖

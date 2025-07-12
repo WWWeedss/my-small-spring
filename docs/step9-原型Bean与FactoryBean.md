@@ -352,7 +352,7 @@ public class ProxyBeanFactory implements FactoryBean<IUserDao> {
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
 
-    <bean id="userService" class="bean.UserService" scope="prototype">
+    <bean id="userService" class="bean.UserService1" scope="prototype">
         <property name="uId" value="10001"/>
         <property name="company" value="腾讯"/>
         <property name="location" value="深圳"/>

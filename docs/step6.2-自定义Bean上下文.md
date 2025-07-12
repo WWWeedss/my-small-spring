@@ -508,7 +508,7 @@ public class UserService {
 
     <bean id="userDao" class="bean.UserDao"/>
 
-    <bean id="userService" class="bean.UserService">
+    <bean id="userService" class="bean.UserService1">
         <property name="uId" value="10001"/>
         <property name="company" value="腾讯"/>
         <property name="location" value="深圳"/>
