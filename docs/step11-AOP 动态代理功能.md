@@ -469,6 +469,25 @@ public class ApiTest {
 
 #### 疑惑与思考
 
+##### 如何理解 ClassFilter
+
+如我们所见，其实 AspectJ 切点表达式就是方法维度的，它没有一个去专门匹配包、类的表达式。那么 ClassFilter 的作用是什么？
+
+我们可以写出这样一个表达式，匹配 IUserService 中的所有方法：
+
+```json
+execution(* bean.IUserService.*(..))
+```
+
+IUserService 是一个接口：
+```java
+public interface IUserService {
+    String queryUserInfo();
+}
+```
+
+那么 ClassFilter 就会匹配所有 IUserService 的实现类中的 queryUserInfo 方法。ClassFilter 起到的就是一个匹配实现类的作用。对于那些非 IUserService 实现类的类，我们的 AOP 根本不会去尝试匹配其中的方法。各位可以试一试保留 queryUserInfo 方法，但是把 implements 删掉，结果应当是没有执行拦截的。
+
 #### 其他相关
 
 ##### AspectJ 切点表达式简要语法
