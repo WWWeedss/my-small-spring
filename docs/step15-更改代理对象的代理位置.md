@@ -23,8 +23,9 @@
 
 TargetSource 是存储代理对象的 Class，现在我们要存储实例化之后的 Bean，而我们的实现都是 Cglib 的增强对象，我们要取它的父类来完成之前的操作。
 
-```java
+我们要将所有原来使用 getTarget().getClass() 的地方替换为 getTargetClass()，因为如果用 Cglib 去重复增强一个 Cglib 类，就会报 duplicate 的错。
 
+```java
 public class TargetSource {
 
     private final Object target;
@@ -33,16 +34,21 @@ public class TargetSource {
         this.target = target;
     }
 
-    public Class<?>[] getTargetClass() {
+    public Class<?>[] getTargetInterfaces() {
         // 获取目标对象实现的所有接口，对于 JDK 的动态代理，必须要有接口才行
         Class<?> clazz = this.target.getClass();
-        // 如果是 Cglib 增强对象，取父类
         clazz = ClassUtils.isCglibProxyClass(clazz) ? clazz.getSuperclass() : clazz;
         return clazz.getInterfaces();
     }
 
+    public Class<?> getTargetClass() {
+        Class<?> clazz = this.target.getClass();
+        clazz = ClassUtils.isCglibProxyClass(clazz) ? clazz.getSuperclass() : clazz;
+        return clazz;
+    }
+
     public Object getTarget() {
-        return target;
+        return this.target;
     }
 }
 ```
