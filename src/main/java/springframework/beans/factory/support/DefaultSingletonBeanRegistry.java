@@ -29,11 +29,11 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
                 // 如果一级缓存中不存在，则从二级缓存中获取
                 singletonObject = earlySingletonObjects.get(beanName);
                 if (singletonObject == null) {
-                    // 如果二级缓存中也不存在，说明这个对象是代理对象，只有代理对象才会放到三级缓存中
+                    // 如果二级缓存中也不存在，去三级缓存中寻找
                     ObjectFactory<?> singletonFactory = singletonFactories.get(beanName);
                     if (singletonFactory != null) {
                         singletonObject = singletonFactory.getObject();
-                        // 从三级缓存中的代理对象中的真实对象取出，放入二级缓存中
+                        // 调用 getObject() 方法，代理 Bean 或者取出 Bean
                         earlySingletonObjects.put(beanName, singletonObject);
                         singletonFactories.remove(beanName);
                     }
