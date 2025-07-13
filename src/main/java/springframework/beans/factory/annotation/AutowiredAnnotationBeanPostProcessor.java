@@ -6,6 +6,7 @@ import springframework.beans.factory.BeanFactory;
 import springframework.beans.factory.BeanFactoryAware;
 import springframework.beans.factory.ConfigurableListableBeanFactory;
 import springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import springframework.core.convert.ConversionService;
 import springframework.utils.BeanUtil;
 import springframework.utils.ClassUtils;
 
@@ -29,8 +30,19 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
         for (Field field : declaredFields) {
             Value valueAnnotation = field.getAnnotation(Value.class);
             if (valueAnnotation != null) {
-                String value = valueAnnotation.value();
-                value = beanFactory.resolveEmbeddedValue(value);
+                Object value = valueAnnotation.value();
+                value = beanFactory.resolveEmbeddedValue((String)value);
+                
+                // 类型转换
+                Class<?> sourceType = value.getClass();
+                Class<?> targetType = field.getType();
+                ConversionService conversionService = beanFactory.getConversionService();
+                if (conversionService != null) {
+                    if (conversionService.canConvert(sourceType, targetType)) {
+                        value = conversionService.convert(value, targetType);
+                    }
+                }
+                
                 try {
                     BeanUtil.setFieldValue(bean, field.getName(), value);
                 } catch (NoSuchFieldException e) {

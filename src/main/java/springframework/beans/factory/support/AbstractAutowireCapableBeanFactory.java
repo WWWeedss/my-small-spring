@@ -1,11 +1,13 @@
 package springframework.beans.factory.support;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.TypeUtil;
 import springframework.beans.BeansException;
 import springframework.beans.PropertyValue;
 import springframework.beans.PropertyValues;
 import springframework.beans.factory.*;
 import springframework.beans.factory.config.*;
+import springframework.core.convert.ConversionService;
 import springframework.utils.BeanUtil;
 
 import java.lang.reflect.Constructor;
@@ -164,10 +166,21 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
                 Object value = propertyValue.getValue();
 
                 if (value instanceof BeanReference){
+                    // A 依赖 B，获取 B 的实例
                     BeanReference beanReference = (BeanReference) value;
-                    // 记得吗，getBean 在 Bean 不存在的时候会先实例化对应的 Bean
-                    // 现在的处理方法如果有环形依赖会有问题，后面我们再解决
                     value = getBean(beanReference.getBeanName());
+                }
+                
+                // 类型转换
+                else {
+                    Class<?> sourceType = value.getClass();
+                    Class<?> targetType = (Class<?>) TypeUtil.getFieldType(bean.getClass(), name);
+                    ConversionService conversionService = getConversionService();
+                    if (conversionService != null) {
+                        if (conversionService.canConvert(sourceType, targetType)) {
+                            value = conversionService.convert(value, targetType);
+                        }
+                    }
                 }
 
                 BeanUtil.setFieldValue(bean, name, value);

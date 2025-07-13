@@ -1,11 +1,13 @@
 package springframework.beans.factory.support;
 
+import org.jetbrains.annotations.Nullable;
 import springframework.beans.BeansException;
 import springframework.beans.factory.BeanFactory;
 import springframework.beans.factory.FactoryBean;
 import springframework.beans.factory.config.BeanDefinition;
 import springframework.beans.factory.config.BeanPostProcessor;
 import springframework.beans.factory.config.ConfigurableBeanFactory;
+import springframework.core.convert.ConversionService;
 import springframework.utils.StringValueResolver;
 
 import java.beans.Beans;
@@ -17,6 +19,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<BeanPostProcessor>();
     
     private final List<StringValueResolver> embeddedValueResolvers = new ArrayList<>();
+    
+    private ConversionService conversionService;
     @Override
     public Object getBean(String name) throws BeansException {
         return doGetBean(name, null);
@@ -31,6 +35,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
     public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
         return (T) getBean(name);
     }
+    
 
     protected <T> T doGetBean(final String name, final Object[] args) {
         Object sharedInstance = getSingleton(name);
@@ -44,6 +49,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
         return (T) getObjectForBeanInstance(bean, name);
     }
 
+    @Override
+    public boolean containsBean(String name) {
+        return containsBeanDefinition(name);
+    }
+    
+    protected abstract boolean containsBeanDefinition(String beanName);
 
     private Object getObjectForBeanInstance(Object beanInstance, String beanName) {
         if (!(beanInstance instanceof FactoryBean)) {
@@ -87,5 +98,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
             result = resolver.resolveStringValue(result);
         }
         return result;
+    }
+
+    @Override
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    @Override
+    public @Nullable ConversionService getConversionService() {
+        return conversionService;
     }
 }

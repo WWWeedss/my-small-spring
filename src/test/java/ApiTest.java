@@ -1,18 +1,34 @@
-import bean.UserService1;
-import bean.UserService2;
+import bean.Husband;
+import converter.StringToIntegerConverter;
 import org.junit.Test;
 import springframework.context.support.ClassPathXmlApplicationContext;
+import springframework.core.convert.converter.Converter;
+import springframework.core.convert.support.StringToNumberConverterFactory;
 
 public class ApiTest {
     @Test
-    public void test_circleDependency(){
+    public void test_convert() {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
-        UserService1 userService1 = (UserService1) applicationContext.getBean("userService1");
-        System.out.println(userService1.queryUserInfo());
-        System.out.println(userService1.queryAnotherUserInfo());
-        UserService2 userService2 = (UserService2) applicationContext.getBean("userService2");
-        System.out.println(userService2.queryUserInfo());
-        System.out.println(userService2.queryAnotherUserInfo());
+        Husband husband = applicationContext.getBean("husband", Husband.class);
+        System.out.println("测试结果：" + husband);
+    }
+
+    @Test
+    public void test_StringToIntegerConverter() {
+        StringToIntegerConverter converter = new StringToIntegerConverter();
+        Integer num = converter.convert("1234");
+        System.out.println("测试结果：" + num);
+    }
+
+    @Test
+    public void test_StringToNumberConverterFactory() {
+        StringToNumberConverterFactory converterFactory = new StringToNumberConverterFactory();
+
+        Converter<String, Integer> stringToIntegerConverter = converterFactory.getConverter(Integer.class);
+        System.out.println("测试结果：" + stringToIntegerConverter.convert("1234"));
+
+        Converter<String, Long> stringToLongConverter = converterFactory.getConverter(Long.class);
+        System.out.println("测试结果：" + stringToLongConverter.convert("1234"));
     }
 }
 
