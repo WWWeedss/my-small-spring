@@ -181,6 +181,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             // 处理循环依赖，将实例化后的 bean 提前放入缓存中储存起来
             if (beanDefinition.isSingleton()) {
                 Object finalBean = bean;
+                // 这里的语法你可能比较奇怪，可以参考 其他相关-函数式接口
                 addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
             }
             
@@ -342,6 +343,8 @@ public class ApiTest {
 }
 ```
 
+如果你报了这个错：java.lang.IllegalArgumentException: Can not set bean.UserService2 field bean.UserService1.userService2 to com.sun.proxy.$Proxy6。可以参考其他相关 - xxx 报错的解释。
+
 ![image-20250713103744092](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713103744092.png)
 
 #### 疑惑与思考
@@ -407,7 +410,23 @@ if (earlySingletonRef != null) {
 
 #### 其他相关
 
-##### 函数式接口、lambda 表达式类型	
+##### 函数式接口、lambda 表达式类型
+
+这是 java8 的一个特性，这种只有一个 public 方法的 interface 的类型就是函数式接口。
+
+```java 
+public interface ObjectFactory<T> {
+    T getObject() throws BeansException;
+}
+```
+
+我们可以直接用 lambda 表达式来替代 new 一个匿名内部类。
+
+```java
+addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
+```
+
+这里的 () -> getEarlyBeanReference 与下方的代码等价：
 
 ```java
 new ObjectFactory<>() {
@@ -419,6 +438,14 @@ new ObjectFactory<>() {
 ```
 
 ##### java.lang.IllegalArgumentException: Can not set bean.UserService2 field bean.UserService1.userService2 to com.sun.proxy.$Proxy6 的报错
+
+如果你没有听我的话，这一句还是 false：
+
+```java
+ advisedSupport.setProxyTargetClass(true);
+```
+
+那么就会报错。
 
 如果使用 JDK 生成动态代理，那么我们只能赋值给接口（IUserService），就像下图：
 
