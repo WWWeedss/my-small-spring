@@ -8,7 +8,7 @@
 
 如何实现呢？我们要注册一个 BeanPostProcessor 并持有 AdvisedSupport，不妨称作 ProxyCreator。每一个 Service 类的 Bean 都会经过 ProxyCreator 的匹配看是否需要包装，如果需要，就返回 Proxy 对象，否则走正常流程。
 
-![image-20250707194644039](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250707194644039.png)
+![image-20250707194644039](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250707194644039.png)
 
 #### 具体实现
 
@@ -225,7 +225,7 @@ public class AspectJExpressionPointcutAdvisor implements PointcutAdvisor {
 
 我们之前的 BeanPostProcessor 必须在已经创建出 bean 之后执行。
 
-![image-20250707201532188](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250707201532188.png)
+![image-20250707201532188](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250707201532188.png)
 
 我们增加一个作用在 beanClass 上的 BeanPostProcessor：
 
@@ -415,7 +415,7 @@ MethodBeforeAdvice 是 BeforeAdvice 的唯一子类，BeforeAdvice 也没有定�
 
 如果 MethodBeforeAdviceInterceptor 中没有定义无参构造器的话，会报如下图的错：
 
-![image-20250707150019171](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250707150019171.png)
+![image-20250707150019171](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250707150019171.png)
 
 这是因为单例 Bean 在目前的流程中是这么初始化的：
 

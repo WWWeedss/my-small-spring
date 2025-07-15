@@ -626,4 +626,4 @@ File - Settings - Appearance & Behavior - System Settings - Http Proxy
 
 譬如我用的是 clash for windows，端口号 7890，像这样设置就可以。
 
-![image-20250322155749078](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250322155749078.png)
+![image-20250322155749078](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250322155749078.png)

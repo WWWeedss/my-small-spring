@@ -345,7 +345,7 @@ public class ApiTest {
 
 如果你报了这个错：java.lang.IllegalArgumentException: Can not set bean.UserService2 field bean.UserService1.userService2 to com.sun.proxy.$Proxy6。可以参考其他相关 - xxx 报错的解释。
 
-![image-20250713103744092](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713103744092.png)
+![image-20250713103744092](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713103744092.png)
 
 #### 疑惑与思考
 
@@ -357,23 +357,23 @@ A、B 循环引用，A 需要生成 AOP 代理，A 先被 Spring 加载，假设
 
 首先 Spring 实例化 A：
 
-![image-20250713102744469](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713102744469.png)
+![image-20250713102744469](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713102744469.png)
 
 然后 Spring 在 A 注入属性的时候实例化 B：
 
-![image-20250713102816700](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713102816700.png)
+![image-20250713102816700](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713102816700.png)
 
 给 B 注入属性的时候，调用了 getEarlyRefence，A 被代理了，放入了二级缓存，并且返回给 B：
 
-![image-20250713102935632](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713102935632.png)
+![image-20250713102935632](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713102935632.png)
 
 B 完成初始化流程，进入一级缓存，并返回给 A：
 
-![image-20250713103015630](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713103015630.png)
+![image-20250713103015630](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713103015630.png)
 
 A 完成初始化，也要进入一级缓存：
 
-![image-20250713103111877](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250713103111877.png)
+![image-20250713103111877](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250713103111877.png)
 
 我们发现，B 持有的是正确的代理类，一级缓存中的 A 却是没有被代理的，初始化完成进入一级缓存后，二级缓存中的 A' 被删除了。这就产生了错误。所以我们在将 A 放入一级缓存之前，必须要检查二级缓存中是否已经有 A' 了，如果有，要将现在 A 的引用指向 A'。
 

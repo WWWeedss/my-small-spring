@@ -5,13 +5,13 @@
 我们在 step12 的时候实现了返回 ProxyBean，让用户可以自由地对 Bean 中的方法调用进行切面拦截。但是那时候我们返回的 Bean 是一个裸 Bean，我们在整个 Bean 的生命周期之前返回了 Bean。我们现在要在 Bean 完成初始化周期之后才进行代理
 
 简明的 Bean 生命周期：
-![image-20250712161515357](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250712161515357.png)
+![image-20250712161515357](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250712161515357.png)
 
 在任意的生命周期阶段之间，都有对应的 BeanPostProcessors.process() 方法可以实现，已达成对 BeanDefinition 和 Bean 的修改。
 
 看看我们已经实现了哪些修改吧：
 
-![image-20250712161621884](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250712161621884.png)
+![image-20250712161621884](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250712161621884.png)
 
 > 真不少啊，其实还有 postProcessAfterInstantiation 等 BeanPostProcessors 没有实现，但是都是类似的逻辑。
 

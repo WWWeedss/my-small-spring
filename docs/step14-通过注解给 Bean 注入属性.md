@@ -149,7 +149,7 @@ src
 
 我们采取这种方式：让 PropertyPlaceholderConfigurer 把读取的 properties 保存下来，并向外暴露一个字符串解析器，输入一个字符串，解析掉所有能解析的占位符。
 
-![image-20250711082232880](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250711082232880.png)
+![image-20250711082232880](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250711082232880.png)
 
 定义一个解析字符串的接口：
 

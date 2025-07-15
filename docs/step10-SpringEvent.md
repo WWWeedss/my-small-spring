@@ -23,7 +23,7 @@ event 事件机制是一个在各种开发场景中被广泛使用的特性。�
 3. 定义 Publisher 并发布事件，把事件传递给监听该事件的 Listener。
 4. 在 Context 中注册 Publisher 和 Listener。  
 
-![image-20250702073938345](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250702073938345.png)
+![image-20250702073938345](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250702073938345.png)
 
 > 同步的 event 实现机制
 
@@ -128,7 +128,7 @@ src
 
 最上层的父类：ApplicationEvent，EventObject 几乎没有任何实现，就是定义了 source 参数（事件发生源）：
 
-![image-20250701075028782](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250701075028782.png)
+![image-20250701075028782](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250701075028782.png)
 
 ```java
 public class ApplicationEvent extends EventObject {
@@ -434,7 +434,7 @@ public class ApiTest {
 
 测试成功！
 
-![image-20250701081825173](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250701081825173.png)
+![image-20250701081825173](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250701081825173.png)
 
 #### 疑惑与思考
 

@@ -178,7 +178,7 @@ public interface HierarchicalBeanFactory extends BeanFactory {
 
 鼠标点这个绿色小图标就好。
 
-![image-20250511232325317](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250511232325317.png)
+![image-20250511232325317](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250511232325317.png)
 
 ###### 方法一
 
@@ -186,19 +186,19 @@ public interface HierarchicalBeanFactory extends BeanFactory {
 
 选中接口类名，右键，按下图选择。
 
-![image-20250324094647567](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250324094647567.png)
+![image-20250324094647567](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250324094647567.png)
 
 进入类关系页面，再右键按下图选择
 
-![image-20250324094927411](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250324094927411.png)
+![image-20250324094927411](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250324094927411.png)
 
 ctrl + A 全选，回车
 
-![image-20250324094938220](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250324094938220.png)
+![image-20250324094938220](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250324094938220.png)
 
 获得类关系图
 
-![image-20250324095011214](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250324095011214.png)
+![image-20250324095011214](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250324095011214.png)
 
 ###### 方法二
 

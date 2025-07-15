@@ -10,7 +10,7 @@
 
 大概就像这样：
 
-![image-20250703073925782](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250703073925782.png)
+![image-20250703073925782](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250703073925782.png)
 
 算一算我们需要什么：
 
@@ -548,11 +548,11 @@ Cglib 的代理实现中我们使用了两个私有静态类 DynamicAdvisedInter
 
 jdk：通过反射调用实现，proxy 和 serviceImpl 共同实现接口，所以没有接口的方法代理不了。
 
-![image-20250704075820485](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250704075820485.png)
+![image-20250704075820485](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250704075820485.png)
 
 Cglib：通过继承实现。
 
-![image-20250704080931328](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250704080931328.png)
+![image-20250704080931328](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250704080931328.png)
 
 所以  enhancer.setInterfaces(advised.getTargetSource().getTargetClass()); 这一句其实只是显式声明了接口方法，子类本身就是会继承父类实现的接口的。
 
@@ -564,4 +564,4 @@ Cglib 会自动创建三个类：代理类（子类）、FastClass 类 A（for T
 
 取消勾选 Remove trailing spaces ……
 
-![image-20250702232633742](https://typora-images-gqy.oss-cn-nanjing.aliyuncs.com/image-20250702232633742.png)
+![image-20250702232633742](https://typora-images-wwweeds.oss-cn-hangzhou.aliyuncs.com/image-20250702232633742.png)
